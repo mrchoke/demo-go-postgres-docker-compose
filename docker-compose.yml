@@ -6,17 +6,26 @@ services:
       POSTGRES_USER: postgres
       POSTGRES_PASSWORD: postgres
       POSTGRES_DB: postgres
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready  -d postgres -U postgres"]
+      interval: 10s
+      timeout: 10s
+      retries: 5
+
   app:
     build:
       context: ./app
     ports:
-      - 8000:80
-    command: sh -c "/wait && ./backend"  
-    environment:
-      WAIT_HOSTS: db:5432
+      - 8000:1323
+    command: sh -c "./backend"
+    depends_on:
+     db:
+       condition: service_healthy
+
   migrate:
     build:
       context: ./migrate
-    command: sh -c "/wait && ./migrate"  
-    environment:
-      WAIT_HOSTS: db:5432
+    command: sh -c "./migrate"
+    depends_on:
+     db:
+       condition: service_healthy
